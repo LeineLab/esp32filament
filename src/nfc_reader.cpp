@@ -22,7 +22,7 @@ static QueueHandle_t nfc_queue = nullptr;
 // than adding a second parallel single-item queue for just one bool.
 struct ArmedWriteRequest {
     FilamentTagData desired;
-    bool allow_overwrite = false;
+    bool allow_overwrite;
 };
 static QueueHandle_t write_request_queue = nullptr;
 static QueueHandle_t write_result_queue  = nullptr;
@@ -424,7 +424,9 @@ bool nfc_read(FilamentTagData &out) {
 
 void nfc_arm_write(const FilamentTagData &desired, bool allow_overwrite) {
     if (!write_request_queue) return;
-    ArmedWriteRequest req{desired, allow_overwrite};
+    ArmedWriteRequest req;
+    req.desired = desired;
+    req.allow_overwrite = allow_overwrite;
     xQueueOverwrite(write_request_queue, &req);
 }
 
