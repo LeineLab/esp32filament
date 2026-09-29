@@ -1,0 +1,90 @@
+#pragma once
+
+// ── WiFi ──────────────────────────────────────────────────────────────────────
+#define WIFI_SSID     "your-wifi-ssid"
+#define WIFI_PASSWORD "your-wifi-password"
+
+// ── MakerSpaceAPI ─────────────────────────────────────────────────────────────
+#define API_BASE_URL  "http://192.168.1.100:8000"
+#define API_TOKEN     "your-filament-station-device-token"   // register under Machines, type "filament_station"
+
+// ── Display — "Cheap Yellow Display" (CYD, ESP32-2432S028) ───────────────────
+// Pins are IDENTICAL between the ILI9341 and ST7789 board revisions — only the
+// panel driver class differs (selected in platformio.ini via the env you build:
+// cyd_ili9341 or cyd_st7789). See README.md for sources.
+#define TFT_CLK   14
+#define TFT_MOSI  13
+#define TFT_MISO  12
+#define TFT_CS    15
+#define TFT_DC     2
+#define TFT_RST   -1   // tied to EN; software reset only
+#define TFT_BL    21   // backlight PWM
+
+// Backlight polarity is inconsistently reported across CYD sources/batches.
+// Default assumes active-HIGH (HIGH = backlight on). If the screen stays dark,
+// or brightness/dimming behaves backwards, set this to 1.
+#define TFT_BL_ACTIVE_LOW 0
+
+// Display resolution in landscape mode (native panel is 240x320 portrait)
+#define DISP_WIDTH  320
+#define DISP_HEIGHT 240
+
+// Backlight brightness: 0–255. BRIGHTNESS_DIM is used after TIMEOUT_DIM_MS
+// (below) of sitting idle on the waiting-for-a-tag screen, restored to
+// BRIGHTNESS_FULL the moment any tag is scanned or a button is pressed.
+#define BRIGHTNESS_FULL   200
+#define BRIGHTNESS_DIM     25
+
+// ── Touch (XPT2046) — SEPARATE SPI bus from the display on the CYD ───────────
+#define TOUCH_CLK  25
+#define TOUCH_MOSI 32
+#define TOUCH_MISO 39
+#define TOUCH_CS   33
+#define TOUCH_IRQ  36
+
+// XPT2046 calibration (adjust with a calibration sketch if touch feels off)
+#define TOUCH_CAL_X_MIN   300
+#define TOUCH_CAL_X_MAX  3800
+#define TOUCH_CAL_Y_MIN   300
+#define TOUCH_CAL_Y_MAX  3800
+
+// Touch-axis inversion varies between individual CYD boards/batches, the
+// same kind of per-unit variance as TFT_BL_ACTIVE_LOW above — with
+// gfx.setRotation(1), some boards only need the 240px-tall axis mirrored
+// (pressing near the top registers near the bottom, the 320px-wide axis is
+// already correct), others need BOTH axes swapped (equivalent to the
+// digitizer sitting rotated 180° relative to the panel). Try swapping
+// TOUCH_Y_INVERTED first (the more commonly reported case); if it's still
+// wrong on the other axis, set TOUCH_X_INVERTED to 1 too. Both are left as
+// flags (not hardcoded in display.h) for exactly this reason.
+#define TOUCH_Y_INVERTED 1
+#define TOUCH_X_INVERTED 0
+
+// ── PN532 NFC Reader (I2C, external module wired to the CN1/P3 header) ───────
+// The CYD exposes GPIO22 and GPIO27 as free, general-purpose pins on its
+// expansion header — commonly wired as I2C SCL/SDA respectively. See README.md.
+#define PN532_SDA  27
+#define PN532_SCL  22
+
+// ── RGB LED (on-board, common anode — active LOW) ─────────────────────────────
+#define LED_R  4
+#define LED_G 16
+#define LED_B 17
+
+// ── Timeouts ──────────────────────────────────────────────────────────────────
+#define TIMEOUT_RESULT_MS      4000   // how long a scan result/error stays on screen
+#define TIMEOUT_CHOICE_MS     20000   // auto-cancel the Einbuchen/Ausbuchen choice screen if idle
+#define NFC_POLL_INTERVAL_MS     50
+#define NFC_RETRIGGER_MS       3000   // ignore the same tag re-appearing within this window
+#define TIMEOUT_PROGRAM_IDLE_MS 60000 // auto-cancel the test-tag wizard (any step) back to idle if left untouched
+#define TIMEOUT_DIM_MS          20000 // dim the backlight after this long idle on the waiting-for-a-tag screen
+
+// ── OTA ───────────────────────────────────────────────────────────────────────
+#define OTA_HOSTNAME  "esp32-filament"
+#define OTA_PASSWORD  "your-ota-password"
+
+// ── HTTP ──────────────────────────────────────────────────────────────────────
+#define HTTP_TIMEOUT_MS  8000
+
+// ── Default weight (grams) offered when a tag doesn't encode one (OpenSpool) ──
+#define DEFAULT_WEIGHT_GRAMS 1000

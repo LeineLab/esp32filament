@@ -1,0 +1,11 @@
+# Local config with real credentials — copy from src/config.h.example
+src/config.h
+
+.pio
+.vscode
+.DS_Store
+*.ttf
+
+# copy a current version of the database to the root from
+# /mnt/UDISK/creality/userdata/box/ on your printer
+material_database.json
