@@ -6,6 +6,7 @@
 #include "led.h"
 #include "nfc_reader.h"
 #include "serial_gen.h"
+#include "filament_colors.h"
 #include "display.h"  // extern LGFX gfx — needed for the idle-dim brightness control below
 
 // Fallback for a config.h created before the test-tag wizard existed (this
@@ -520,31 +521,10 @@ static int prog_active_brand_count() {
     return g_prog.format == TagFormat::CREALITY ? PROG_CREALITY_BRAND_COUNT : PROG_BRAND_COUNT;
 }
 
-struct ProgColor {
-    const char *name;
-    const char *hex;      // "#RRGGBB", uppercase — must match exactly what every tag_parse_*() formats back
-    uint32_t    rgb;
-    bool        light_bg; // true = use black label text (this swatch is light)
-};
-static const ProgColor PROG_COLORS[] = {
-    {"Schwarz", "#000000", 0x000000, false},
-    {"Weiß",    "#FFFFFF", 0xFFFFFF, true},
-    {"Rot",     "#FF0000", 0xFF0000, false},
-    {"Grün",    "#00A651", 0x00A651, false},
-    {"Blau",    "#0066CC", 0x0066CC, false},
-    {"Gelb",    "#FFD400", 0xFFD400, true},
-    {"Orange",  "#FF7A00", 0xFF7A00, false},
-    {"Grau",    "#808080", 0x808080, false},
-    {"Pink",    "#FF66B2", 0xFF66B2, false},
-    {"Lila",    "#8E44AD", 0x8E44AD, false},
-    {"Braun",   "#6B3F1D", 0x6B3F1D, false},
-    {"Türkis",  "#00B8B8", 0x00B8B8, false},
-    {"Silber",  "#C0C0C0", 0xC0C0C0, true},
-    {"Gold",    "#D4AF37", 0xD4AF37, true},
-    {"Natur",   "#F0E6D2", 0xF0E6D2, true},
-    {"Beige",   "#E8D6B3", 0xE8D6B3, true},
-};
-static const int PROG_COLOR_COUNT = sizeof(PROG_COLORS) / sizeof(PROG_COLORS[0]);
+// The color swatch list itself (FilamentColor/FILAMENT_COLORS/
+// FILAMENT_COLOR_COUNT) lives in filament_colors.h — real, manufacturer-
+// published names/hex values, not invented ones. See that file's own header
+// comment for the sourcing and the light_bg contrast-ratio computation.
 
 static const int PROG_LIST_ROW_H = 40;
 static const int PROG_LIST_GAP   = 6;
@@ -629,9 +609,9 @@ static void prog_refresh_list() {
             break;
         }
         case AppState::PROG_COLOR:
-            for (int i = 0; i < PROG_COLOR_COUNT; i++) {
-                prog_list_add_row(PROG_COLORS[i].name, PROG_COLORS[i].rgb,
-                                   PROG_COLORS[i].light_bg ? 0x000000 : 0xFFFFFF, i);
+            for (int i = 0; i < FILAMENT_COLOR_COUNT; i++) {
+                prog_list_add_row(FILAMENT_COLORS[i].name, FILAMENT_COLORS[i].rgb,
+                                   FILAMENT_COLORS[i].light_bg ? 0x000000 : 0xFFFFFF, i);
             }
             break;
         default: break;
@@ -691,7 +671,7 @@ static void build_prog_write_tag(FilamentTagData &out) {
     } else {
         snprintf(out.type_name, sizeof(out.type_name), "%s %s", PROG_BASE_MATERIALS[g_prog.base_material_idx], modifier);
     }
-    strlcpy(out.color, PROG_COLORS[g_prog.color_idx].hex, sizeof(out.color));
+    strlcpy(out.color, FILAMENT_COLORS[g_prog.color_idx].hex, sizeof(out.color));
     if (prog_format_has_brand_field()) strlcpy(out.brand, prog_active_brands()[g_prog.brand_idx], sizeof(out.brand));
     out.weight_grams = prog_format_needs_weight() ? g_prog.weight_grams : 0;
     out.has_serial = prog_format_has_serial();
@@ -736,7 +716,7 @@ static void enter_prog_confirm() {
 
     char line1[64], line2[64], line3[64];
     snprintf(line1, sizeof(line1), "%s - %s", tag_format_name(g_prog.format), preview.type_name);
-    snprintf(line2, sizeof(line2), "%s: %s", STR_LABEL_COLOR, PROG_COLORS[g_prog.color_idx].name);
+    snprintf(line2, sizeof(line2), "%s: %s", STR_LABEL_COLOR, FILAMENT_COLORS[g_prog.color_idx].name);
     if (prog_format_needs_weight()) {
         char tmp[32];
         snprintf(tmp, sizeof(tmp), "   %s: %ug", STR_LABEL_WEIGHT, (unsigned)g_prog.weight_grams);
@@ -747,10 +727,11 @@ static void enter_prog_confirm() {
     lv_label_set_text(info_line1, line1);
     lv_label_set_text(info_line2, line2);
     lv_label_set_text(info_line3, line3);
-    // The exact swatch color is already known here (picked from PROG_COLORS
-    // a moment ago, see enter_prog_color()) — no parsing needed, unlike
-    // show_tag_info()'s own use of this same swatch for a real scanned tag.
-    set_color_swatch(lv_color_hex(PROG_COLORS[g_prog.color_idx].rgb));
+    // The exact swatch color is already known here (picked from
+    // FILAMENT_COLORS a moment ago, see enter_prog_color()) — no parsing
+    // needed, unlike show_tag_info()'s own use of this same swatch for a
+    // real scanned tag.
+    set_color_swatch(lv_color_hex(FILAMENT_COLORS[g_prog.color_idx].rgb));
     lv_obj_clear_flag(info_line1, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(info_line2_row, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(info_line3, LV_OBJ_FLAG_HIDDEN);
@@ -896,7 +877,7 @@ static void prog_list_btn_cb(lv_event_t *e) {
             enter_prog_color();
             break;
         case AppState::PROG_COLOR:
-            if (idx >= PROG_COLOR_COUNT) return;
+            if (idx >= FILAMENT_COLOR_COUNT) return;
             g_prog.color_idx = idx;
             if (prog_format_has_brand_field()) enter_prog_brand();
             else prog_after_color_or_brand();

@@ -217,13 +217,21 @@ screen, then:
    Stardust, Glitter, Matte, Marmor, CF, GF, Transparent, Hyper. OpenTag3D
    stores base material and variant as two separate fields already; the
    other formats get the combined string.
-4. Farbe (16 swatches)
-5. Hersteller — **only asked for OpenSpool/OpenTag3D**, the two formats with
-   a real, writable brand field (Generic / Creality / Bambu Lab / eSun /
-   Overture / Sunlu / Prusament / Polymaker). Bambu Lab and Creality tags
-   have no brand field at all — those parsers always report a fixed brand
-   regardless of tag content, so there's nowhere to write a different
-   manufacturer name.
+4. Farbe (30 swatches — Bambu Lab's own official "PLA Basic" color names/hex
+   values, see `src/filament_colors.h`; none of the four tag formats
+   actually store a color name on the tag, only the hex, so this list is
+   shared across all formats rather than being brand-specific)
+5. Hersteller — **asked for OpenSpool, OpenTag3D, and Creality** (Bambu Lab
+   is the only format with no brand field at all — `tag_parse_bambu()`
+   always reports a fixed "Bambu Lab" regardless of tag content, so there's
+   nowhere to write a different manufacturer name). OpenSpool/OpenTag3D have
+   a real, writable free-text brand field, offered as a fixed list (Generic /
+   Creality / Bambu Lab / eSun / Overture / Sunlu / Prusament / Polymaker).
+   Creality's brand isn't free text at all — it's resolved by looking up the
+   written material in `creality_k2_materials.h`'s real material catalog
+   (see [Tag format support](#tag-format-support)), so only the brands that
+   catalog actually contains are offered: Generic / Creality / eSUN /
+   Polymaker.
 6. Gewicht (only asked for Bambu/Creality/OpenTag3D — the formats with a
    weight field)
 7. Bestätigen — shows a summary and, where applicable, a freshly generated
