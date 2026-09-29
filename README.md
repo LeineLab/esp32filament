@@ -1,5 +1,7 @@
 # ESP32 Filament Station
 
+[![Tests](https://github.com/LeineLab/esp32filament/actions/workflows/tests.yml/badge.svg)](https://github.com/LeineLab/esp32filament/actions/workflows/tests.yml)
+
 An NFC scanning terminal for MakerSpaceAPI's filament roll tracking module
 (see the main project's [README](../../README.md) / [CLAUDE.md](../../CLAUDE.md)
 for the REST API and web UI). Scan a spool's NFC tag to check it in or out of
@@ -29,6 +31,11 @@ pio run -e cyd_ili9341 -t upload
 # Serial monitor
 pio device monitor --baud 115200
 ```
+
+**CI:** every push/PR builds both environments via GitHub Actions
+(`.github/workflows/tests.yml`), compiling against `config.h.example`'s
+placeholder values (the real `config.h` is gitignored and never checked in)
+— a pure build-regression check, no flashable image is produced or kept.
 
 ## Which environment: ILI9341 or ST7789?
 
